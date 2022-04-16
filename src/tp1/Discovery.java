@@ -1,5 +1,4 @@
 package tp1;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,8 +8,11 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -47,6 +49,8 @@ public class Discovery {
 	private String serviceName;
 	private String serviceURI;
 
+	private Map<String, ArrayList<URI>> knownServices;
+
 	/**
 	 * @param  serviceName the name of the service to announce
 	 * @param  serviceURI an uri string - representing the contact endpoint of the service being announced
@@ -55,6 +59,8 @@ public class Discovery {
 		this.addr = addr;
 		this.serviceName = serviceName;
 		this.serviceURI  = serviceURI;
+
+		knownServices = new ConcurrentHashMap<>();
 	}
 
 	/**
@@ -108,14 +114,19 @@ public class Discovery {
 						ms.receive(pkt);
 
 						var msg = new String(pkt.getData(), 0, pkt.getLength());
-						System.out.println(msg);
-						//System.out.printf( "FROM %s (%s) : %s\n", pkt.getAddress().getCanonicalHostName(),
-						//		pkt.getAddress().getHostAddress(), msg);
+
+						System.out.printf( "FROM %s (%s) : %s\n", pkt.getAddress().getCanonicalHostName(),
+								pkt.getAddress().getHostAddress(), msg);
 						var tokens = msg.split(DELIMITER);
 
 						if (tokens.length == 2) {
-							//TODO: to complete by recording the received information from the other node.
 
+							//If service doesn't exist
+							if(!knownServices.containsKey(tokens[0])) {
+								knownServices.put(tokens[0], new ArrayList<URI>());
+							}
+
+							knownServices.get(tokens[0]).add(URI.create(tokens[1]));
 
 						}
 					} catch (IOException e) {
@@ -138,12 +149,15 @@ public class Discovery {
 	 * Returns the known servers for a service.
 	 *
 	 * @param  serviceName the name of the service being discovered
-	 * @return an array of URI with the service instances discovered. 
+	 * @return an array of URI with the service instances discovered.
 	 *
 	 */
 	public URI[] knownUrisOf(String serviceName) {
-		//TODO: You have to implement this!!
-		throw new Error("Not Implemented...");
+
+		var uris = knownServices.get(serviceName);
+		URI[] result = new URI[uris.size()];
+
+		return uris.toArray(result);
 	}
 
 	private void joinGroupInAllInterfaces(MulticastSocket ms) throws SocketException {
@@ -159,7 +173,7 @@ public class Discovery {
 	}
 
 	/**
-	 * Starts sending service announcements at regular intervals... 
+	 * Starts sending service announcements at regular intervals...
 	 */
 	public void start() {
 		announce(serviceName, serviceURI);
@@ -172,3 +186,4 @@ public class Discovery {
 		discovery.start();
 	}
 }
+
