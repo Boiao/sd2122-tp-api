@@ -37,7 +37,7 @@ public class RESTFilesServer {
 
             Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
             Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, serverURI);
-            discv.announce(SERVICE,serverURI);
+            discv.start();
 
             //More code can be executed here...
         } catch( Exception e) {
