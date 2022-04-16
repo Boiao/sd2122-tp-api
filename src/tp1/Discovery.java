@@ -153,7 +153,7 @@ public class Discovery {
 	 * @return an array of URI with the service instances discovered.
 	 *
 	 */
-	public URI[] knownUrisOf(String serviceName) {
+	public URI[] findUris(String serviceName) {
 
 		var uris = knownServices.get(serviceName);
 		URI[] result = new URI[uris.size()];
