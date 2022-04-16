@@ -27,6 +27,7 @@ import java.util.logging.Logger;
  * <p>&lt;service-name-string&gt;&lt;delimiter-char&gt;&lt;service-uri-string&gt;</p>
  */
 public class Discovery {
+
 	private static Logger Log = Logger.getLogger(Discovery.class.getName());
 
 	static {
@@ -38,7 +39,7 @@ public class Discovery {
 
 
 	// The pre-aggreed multicast endpoint assigned to perform discovery.
-	static final InetSocketAddress DISCOVERY_ADDR = new InetSocketAddress("227.227.227.227", 2277);
+	public static final InetSocketAddress DISCOVERY_ADDR = new InetSocketAddress("227.227.227.227", 2277);
 	static final int DISCOVERY_PERIOD = 1000;
 	static final int DISCOVERY_TIMEOUT = 5000;
 

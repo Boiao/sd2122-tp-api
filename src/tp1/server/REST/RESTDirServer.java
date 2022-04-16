@@ -22,8 +22,6 @@ public class RESTDirServer {
     public static final int PORT = 8080;
     public static final String SERVICE = "directory";
     private static final String SERVER_URI_FMT = "http://%s:%s/rest";
-    static final InetSocketAddress DISCOVERY_ADDR = new InetSocketAddress("227.227.227.227", 2277);
-
 
     public static void main(String[] args) {
         try {
@@ -39,7 +37,7 @@ public class RESTDirServer {
             JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);
 
             Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
-            Discovery discv = new Discovery(DISCOVERY_ADDR, SERVICE, serverURI);
+            Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, serverURI);
             discv.announce(SERVICE,serverURI);
 
             //More code can be executed here...

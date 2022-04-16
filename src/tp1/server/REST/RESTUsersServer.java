@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import tp1.Discovery;
 import tp1.server.REST.resources.UsersResource;
 import util.Debug;
 
@@ -37,6 +38,8 @@ public class RESTUsersServer {
 			JdkHttpServerFactory.createHttpServer( URI.create(serverURI), config);
 
 			Log.info(String.format("%s Server ready @ %s\n",  SERVICE, serverURI));
+			Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE, serverURI);
+			discv.announce(SERVICE,serverURI);
 
 			//More code can be executed here...
 		} catch( Exception e) {
