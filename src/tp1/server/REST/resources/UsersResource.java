@@ -12,7 +12,7 @@ import tp1.api.service.rest.RestUsers;
 @Singleton
 public class UsersResource implements RestUsers {
 
-	private final Map<String, User> users = new HashMap<>();
+	public final Map<String, User> users = new HashMap<>();
 
 	private static Logger Log = Logger.getLogger(UsersResource.class.getName());
 
@@ -31,7 +31,7 @@ public class UsersResource implements RestUsers {
 		}
 
 		// Check if userId already exists
-		if( users.containsKey(user.getUserId())) {
+		if(users.containsKey(user.getUserId())) {
 			Log.info("User already exists.");
 			throw new WebApplicationException( Status.CONFLICT );
 		}
@@ -151,5 +151,6 @@ public class UsersResource implements RestUsers {
 
 		return res;
 	}
+
 
 }

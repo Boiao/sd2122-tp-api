@@ -28,6 +28,7 @@ public class RestUsersClient extends RestClient implements Users {
 
     @Override
     public Result<String> createUser(User user) {
+        
         return Result.ok(super.reTry(() -> {
             return clt_createUser(user);
         }));

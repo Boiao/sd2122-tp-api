@@ -1,5 +1,6 @@
 package tp1.server.REST.resources;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import tp1.api.FileInfo;
@@ -9,19 +10,26 @@ import tp1.api.service.util.Directory;
 
 import java.util.*;
 import java.util.logging.Logger;
-
+@Singleton
 public class DirResources implements RestDirectory {
 
     private final Map<String, FileInfo> directories = new HashMap<>();
-    private final Map<String, User> users = new HashMap<>();
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
+
+
+    public DirResources() {
+
+    }
 
     @Override
     public FileInfo writeFile(String filename, byte[] data, String userId, String password) {
-        User u = users.get(userId);
+
+
+        User u = null;
         if(u != null && u.getPassword().equals(password)) {
             FileInfo file = new FileInfo(userId, filename, userId + "/" + filename, new HashSet<String>());
             directories.put(userId + "/" + filename, file);
+            FilesResources.instance.writeFile(filename,data,"");
             return file;
         }
         else if(u == null)
@@ -30,6 +38,8 @@ public class DirResources implements RestDirectory {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+
     }
 
     @Override

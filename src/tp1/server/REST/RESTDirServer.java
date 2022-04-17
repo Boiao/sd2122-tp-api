@@ -3,6 +3,7 @@ package tp1.server.REST;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 import tp1.Discovery;
+import tp1.server.REST.resources.DirResources;
 import tp1.server.REST.resources.UsersResource;
 import util.Debug;
 
@@ -13,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RESTDirServer {
-    private static Logger Log = Logger.getLogger(RESTUsersServer.class.getName());
+    private static Logger Log = Logger.getLogger(RESTDirServer.class.getName());
 
     static {
         System.setProperty("java.net.preferIPv4Stack", "true");
@@ -28,7 +29,7 @@ public class RESTDirServer {
             Debug.setLogLevel( Level.INFO, Debug.SD2122 );
 
             ResourceConfig config = new ResourceConfig();
-            config.register(UsersResource.class);
+            config.register(DirResources.class);
             //config.register(CustomLoggingFilter.class);
             //config.register(GenericExceptionMapper.class);
 
