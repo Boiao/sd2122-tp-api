@@ -7,11 +7,12 @@ import tp1.api.service.rest.RestFiles;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 public class FilesResources implements RestFiles {
 
-    public Map<String,byte[]> files = new HashMap<>();
+    public Map<String,byte[]> files = new ConcurrentHashMap<>();
 
     public FilesResources(){
 
@@ -28,18 +29,25 @@ public class FilesResources implements RestFiles {
 
     @Override
     public void deleteFile(String fileId, String token) {
+        if(files.containsKey(fileId))
+            files.remove(fileId);
+        else if(!files.containsKey(fileId))
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
     }
 
     @Override
     public byte[] getFile(String fileId, String token) {
-        byte[] file = files.get(fileId);
-        if(file != null)
-            return file;
-        else if(file == null)
+        if(files.containsKey(fileId))
+            return files.get(fileId);
+        else if(!files.containsKey(fileId))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+
     }
 
 }

@@ -94,6 +94,8 @@ public class DirResources implements RestDirectory {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
+
+
     @Override
     public List<FileInfo> lsFile(String userId, String password) {
         return null;
