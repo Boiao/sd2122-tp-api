@@ -17,7 +17,7 @@ import tp1.api.service.util.Users;
 import static tp1.api.service.rest.RestUsers.PASSWORD;
 import static tp1.api.service.rest.RestUsers.QUERY;
 
-public class RestUsersClient extends RestClient implements Users {
+public class RestUsersClient extends RestClient implements RestUsers {
 
     final WebTarget target;
 
@@ -27,40 +27,40 @@ public class RestUsersClient extends RestClient implements Users {
     }
 
     @Override
-    public Result<String> createUser(User user) {
+    public String createUser(User user) {
         
-        return Result.ok(super.reTry(() -> {
+        return super.reTry(() -> {
             return clt_createUser(user);
-        }));
+        });
     }
 
     @Override
-    public Result<User> getUser(String userId, String password) {
+    public User getUser(String userId, String password) {
         // TO test
-        return Result.ok(super.reTry(() -> {
+        return super.reTry(() -> {
             return clt_getUser(userId, password);
-        }));
+        });
     }
 
     @Override
-    public Result<User> updateUser(String userId, String password, User user) {
+    public User updateUser(String userId, String password, User user) {
         // TO test
-        return Result.ok(super.reTry(() -> {
+        return super.reTry(() -> {
             return clt_updateUser(userId, password, user);
-        }));
+        });
     }
 
     @Override
-    public Result<User> deleteUser(String userId, String password) {
+    public User deleteUser(String userId, String password) {
         // TO test
-        return Result.ok(super.reTry(() -> {
+        return super.reTry(() -> {
             return clt_deleteUser(userId, password);
-        }));
+        });
     }
 
     @Override
-    public Result<List<User>> searchUsers(String pattern) {
-        return Result.ok(super.reTry(() -> clt_searchUsers(pattern)));
+    public List<User> searchUsers(String pattern) {
+        return super.reTry(() -> clt_searchUsers(pattern));
     }
 
 

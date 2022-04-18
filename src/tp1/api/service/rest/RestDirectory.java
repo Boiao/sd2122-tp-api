@@ -17,6 +17,7 @@ import tp1.api.FileInfo;
 public interface RestDirectory {
 
 	static final String PATH="/dir";
+	public static final String FILENAME = "filename";
 
 	/**
 	 * Write a new version of a file. If the file exists, its contents are overwritten.

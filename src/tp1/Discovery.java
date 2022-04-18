@@ -1,4 +1,7 @@
 package tp1;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -121,14 +124,15 @@ public class Discovery {
 						var tokens = msg.split(DELIMITER);
 
 						if (tokens.length == 2) {
-
+							URI uri = URI.create(tokens[1]);
 							//If service doesn't exist
-							if(!knownServices.containsKey(tokens[0])) {
-								knownServices.put(tokens[0], new ArrayList<URI>());
-							}
+							if(knownServices.containsKey(tokens[0])) {
 
-							knownServices.get(tokens[0]).add(URI.create(tokens[1]));
-
+								knownServices.get(tokens[0]).add(uri);
+							}else {
+								ArrayList<URI> uriD = new ArrayList<>();
+								uriD.add(uri);
+								knownServices.put(tokens[0],uriD);							}
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -153,12 +157,14 @@ public class Discovery {
 	 * @return an array of URI with the service instances discovered.
 	 *
 	 */
-	public URI[] findUris(String serviceName) {
+	public URI[] knownUrisOf(String serviceName) {
 
 		var uris = knownServices.get(serviceName);
+		if(uris == null)
+			return new URI[0];
 		URI[] result = new URI[uris.size()];
-
-		return uris.toArray(result);
+		uris.toArray(result);
+		return result;
 	}
 
 	private void joinGroupInAllInterfaces(MulticastSocket ms) throws SocketException {
@@ -187,4 +193,3 @@ public class Discovery {
 		discovery.start();
 	}
 }
-

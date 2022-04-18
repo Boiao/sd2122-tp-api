@@ -2,18 +2,24 @@ package tp1.clients.REST;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import javassist.bytecode.ByteArray;
 import tp1.api.FileInfo;
+import tp1.api.User;
 import tp1.api.service.rest.RestDirectory;
 import tp1.api.service.rest.RestUsers;
 import tp1.api.service.util.Directory;
 import tp1.api.service.util.Result;
 
+import javax.print.DocFlavor;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 
-public class RestDirClient extends RestClient implements Directory {
+public class RestDirClient extends RestClient implements RestDirectory {
 
     final WebTarget target;
 
@@ -23,34 +29,43 @@ public class RestDirClient extends RestClient implements Directory {
     }
 
     @Override
-    public Result<FileInfo> writeFile(String filename, byte[] data, String userId, String password) {
-        return null;
+    public FileInfo writeFile(String filename, byte[] data, String userId, String password) {
+        return super.reTry(() -> {
+            return clt_writeFile(data);
+        });
     }
 
     @Override
-    public Result<Void> shareFile(String filename, String userId, String userIdShare, String password) {
-        return null;
+    public void deleteFile(String filename, String userId, String password) {
+
     }
 
     @Override
-    public Result<Void> unshareFile(String filename, String userId, String userIdShare, String password) {
-        return null;
+    public void shareFile(String filename, String userId, String userIdShare, String password) {
     }
 
     @Override
-    public Result<byte[]> getFile(String filename, String userId, String accUserId, String password) {
-        return null;
+    public void unshareFile(String filename, String userId, String userIdShare, String password) {
+
     }
 
     @Override
-    public Result<List<FileInfo>> lsFile(String userId, String password) {
+    public byte[] getFile(String filename, String userId, String accUserId, String password) {
+
+        return super.reTry(() -> {
+            return clt_getFile(filename,userId);
+        });
+    }
+
+    @Override
+    public List<FileInfo> lsFile(String userId, String password) {
         return null;
     }
-/*
-    private FileInfo clt_writeFile(String filename, byte[] data, String userId, String password){
+
+    private FileInfo clt_writeFile(byte[] data){
             Response r = target.request()
                     .accept(MediaType.APPLICATION_JSON)
-                    .post(Entity.entity(new FileInfo(userId,filename,userId + "/" + filename)),MediaType.APPLICATION_JSON);
+                    .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
             return r.readEntity(FileInfo.class);
         else
@@ -58,7 +73,7 @@ public class RestDirClient extends RestClient implements Directory {
 
         return null;
     }
-
+/*
     private Void clt_shareFile(String filename, String userId, String userIdShare, String password){
 
     }
@@ -66,8 +81,18 @@ public class RestDirClient extends RestClient implements Directory {
     private Void clt_unshareFile(String filename, String userId, String userIdShare, String password){
 
     }
-
-    private byte[] clt_getFile(String filename, String userId, String accUserId, String password){
-
 */
+    private byte[] clt_getFile(String filename, String userId){
+        Response r = target.path(userId)
+                .queryParam(FILENAME,filename).request()
+                .accept(MediaType.APPLICATION_OCTET_STREAM)
+                .get();
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
+            return r.readEntity(byte[].class);
+        } else
+            System.out.println("Error, HTTP error status: " + r.getStatus());
+        return null;
+    }
+
+
 }
