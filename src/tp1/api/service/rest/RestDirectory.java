@@ -18,6 +18,9 @@ public interface RestDirectory {
 
 	static final String PATH="/dir";
 	public static final String FILENAME = "filename";
+	public static final String PASSWORD = "password";
+	public static final String ACCUSER = "accUserId";
+	public static final String USERIDSHARE = "userIdShare";
 
 	/**
 	 * Write a new version of a file. If the file exists, its contents are overwritten.

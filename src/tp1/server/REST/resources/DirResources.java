@@ -16,6 +16,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
 @Singleton
 public class DirResources implements RestDirectory {
 
@@ -24,7 +25,7 @@ public class DirResources implements RestDirectory {
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
     private RestUsersClient usersClient;
     private RestFilesClient filesClient;
-    private Discovery discv = new Discovery(null,"Directory",null);
+    private Discovery discv = new Discovery(null, "Directory", null);
     private URI usersURI;
     private URI filesURI;
     private int fileid;
@@ -43,19 +44,18 @@ public class DirResources implements RestDirectory {
     public FileInfo writeFile(String filename, byte[] data, String userId, String password) {
 
 
-        User u = usersClient.getUser(userId,password);
+        User u = usersClient.getUser(userId, password);
 
-        if(u != null && u.getPassword().equals(password)) {
-            FileInfo file = new FileInfo(userId, filename, filesURI + "/" + fileid, new HashSet<>());
+        if (u != null && u.getPassword().equals(password)) {
+            FileInfo file = new FileInfo(userId, filename, filesURI + "/files/" + fileid, new HashSet<>());
             directories.put(userId + "/" + filename, file);
             filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
-            filesClient.writeFile(String.valueOf(fileid),data,"");
+            filesClient.writeFile(String.valueOf(fileid), data, "");
             fileid++;
             return file;
-        }
-        else if(u == null)
+        } else if (u == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if(!u.getPassword().equals(password))
+        else if (!u.getPassword().equals(password))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -81,19 +81,20 @@ public class DirResources implements RestDirectory {
     @Override
     public byte[] getFile(String filename, String userId, String accUserId, String password) {
 
-        User u = usersClient.getUser(accUserId,password);
+        User u = usersClient.getUser(accUserId, password);
+        int status = usersClient.checkPasssword(accUserId,password);
         FileInfo file = directories.get(userId + "/" + filename);
-        if(u != null && file != null){
-            String fileid = filesIDs.get(userId + "/" + filename);
-            return filesClient.getFile(fileid,"");
-        }else if(u == null || file == null)
+        if (u != null && file != null) {
+            throw new WebApplicationException(
+                    Response.temporaryRedirect(
+                            URI.create(file.getFileURL())).build());
+        } else if ((u == null && status == 404) || file == null )
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if(!u.getPassword().equals(password))
+        else if( status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
-
 
 
     @Override
@@ -101,12 +102,12 @@ public class DirResources implements RestDirectory {
         return null;
     }
 
-    private URI getServiceURI(String serviceName){
+    private URI getServiceURI(String serviceName) {
 
         URI uri = null;
         discv.listener();
-        while(true) {
-            if(discv.knownUrisOf(serviceName).length > 0) {
+        while (true) {
+            if (discv.knownUrisOf(serviceName).length > 0) {
                 uri = discv.knownUrisOf(serviceName)[0];
                 break;
             }

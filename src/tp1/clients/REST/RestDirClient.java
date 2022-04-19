@@ -31,7 +31,7 @@ public class RestDirClient extends RestClient implements RestDirectory {
     @Override
     public FileInfo writeFile(String filename, byte[] data, String userId, String password) {
         return super.reTry(() -> {
-            return clt_writeFile(data);
+            return clt_writeFile(filename,data,userId,password);
         });
     }
 
@@ -53,7 +53,7 @@ public class RestDirClient extends RestClient implements RestDirectory {
     public byte[] getFile(String filename, String userId, String accUserId, String password) {
 
         return super.reTry(() -> {
-            return clt_getFile(filename,userId);
+            return clt_getFile(filename,userId,accUserId,password);
         });
     }
 
@@ -62,8 +62,10 @@ public class RestDirClient extends RestClient implements RestDirectory {
         return null;
     }
 
-    private FileInfo clt_writeFile(byte[] data){
-            Response r = target.request()
+    private FileInfo clt_writeFile(String filename, byte[] data, String userId, String password){
+            Response r = target.path(userId).path(filename)
+                    .queryParam(PASSWORD,password)
+                    .request()
                     .accept(MediaType.APPLICATION_JSON)
                     .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
@@ -82,9 +84,10 @@ public class RestDirClient extends RestClient implements RestDirectory {
 
     }
 */
-    private byte[] clt_getFile(String filename, String userId){
-        Response r = target.path(userId)
-                .queryParam(FILENAME,filename).request()
+    private byte[] clt_getFile(String filename, String userId, String accUserId, String password){
+        Response r = target.path(userId).path(filename)
+                .queryParam(ACCUSER,accUserId)
+                .queryParam(PASSWORD,password).request()
                 .accept(MediaType.APPLICATION_OCTET_STREAM)
                 .get();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {

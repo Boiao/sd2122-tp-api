@@ -23,7 +23,7 @@ public class RestFilesClient extends RestClient implements RestFiles {
     }
     @Override
     public void writeFile(String fileId, byte[] data, String token) {
-        super.reTry(() -> {clt_writeFile(data);
+        super.reTry(() -> {clt_writeFile(fileId,data,token);
             return null;
         });
     }
@@ -44,8 +44,8 @@ public class RestFilesClient extends RestClient implements RestFiles {
 
     }
 
-    public void clt_writeFile(byte[] data){
-        Response r = target.request()
+    public void clt_writeFile(String fileId, byte[] data, String token){
+        Response r = target.path(fileId).request()
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
@@ -70,7 +70,7 @@ public class RestFilesClient extends RestClient implements RestFiles {
 
 
         Response r = target.path(fileId)
-                .request()
+                .queryParam(TOKEN,"").request()
                 .accept(MediaType.APPLICATION_OCTET_STREAM)
                 .get();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {

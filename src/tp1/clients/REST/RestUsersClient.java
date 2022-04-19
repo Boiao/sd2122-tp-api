@@ -3,6 +3,9 @@ package tp1.clients.REST;
 import java.net.URI;
 import java.util.List;
 
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.GenericType;
@@ -63,6 +66,15 @@ public class RestUsersClient extends RestClient implements RestUsers {
         return super.reTry(() -> clt_searchUsers(pattern));
     }
 
+    @GET
+    @Path("/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public int checkPasssword(String userId,String password){
+        return super.reTry(()->{
+            return  clt_checkPassword(userId,password);
+        });
+
+    }
 
     private String clt_createUser(User user) {
 
@@ -134,5 +146,15 @@ public class RestUsersClient extends RestClient implements RestUsers {
         } else
             System.out.println("Error, HTTP error status: " + r.getStatus());
         return null;
+    }
+
+    private int clt_checkPassword(String userId,String password){
+        Response r = target.path(userId)
+                .queryParam(PASSWORD, password).request()
+                .accept(MediaType.APPLICATION_JSON)
+                .get();
+
+
+            return r.getStatus();
     }
 }
