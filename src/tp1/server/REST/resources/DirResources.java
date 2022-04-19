@@ -45,17 +45,27 @@ public class DirResources implements RestDirectory {
 
 
         User u = usersClient.getUser(userId, password);
+        int status = usersClient.checkPasssword(userId,password);
 
         if (u != null && u.getPassword().equals(password)) {
-            FileInfo file = new FileInfo(userId, filename, filesURI + "/files/" + fileid, new HashSet<>());
-            directories.put(userId + "/" + filename, file);
-            filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
-            filesClient.writeFile(String.valueOf(fileid), data, "");
-            fileid++;
+            String oldID = filesIDs.get(userId + "/" + filename);
+            FileInfo file;
+            if(oldID == null) {
+                file = new FileInfo(userId, filename, filesURI + "/files/" + fileid, new HashSet<>());
+                directories.put(userId + "/" + filename, file);
+                filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
+                filesClient.writeFile(String.valueOf(fileid), data, "");
+                fileid++;
+            } else {
+                file = new FileInfo(userId, filename, filesURI + "/files/" + oldID, new HashSet<>());
+                directories.put(userId + "/" + filename, file);
+                filesClient.writeFile(oldID, data, "");
+            }
+
             return file;
-        } else if (u == null)
+        } else if (status == 404)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if (!u.getPassword().equals(password))
+        else if (status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -88,9 +98,9 @@ public class DirResources implements RestDirectory {
             throw new WebApplicationException(
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
-        } else if ((u == null && status == 404) || file == null )
+        } else if (status == 404 || file == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if( status == 403)
+        else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
