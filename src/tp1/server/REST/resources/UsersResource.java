@@ -4,7 +4,11 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import jakarta.inject.Singleton;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
@@ -69,6 +73,21 @@ public class UsersResource implements RestUsers {
 		return user;
 	}
 
+/*
+	@Override
+	public User getUserbyId(String userId){
+
+		User user = users.get(userId);
+
+		// Check if user exists
+		if( user == null ) {
+			Log.info("User does not exist.");
+			throw new WebApplicationException( Status.NOT_FOUND );
+		}
+
+		return user;
+	}
+*/
 
 	@Override
 	public User updateUser(String userId, String password, User updatedUser) {

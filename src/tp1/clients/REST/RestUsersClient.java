@@ -44,7 +44,14 @@ public class RestUsersClient extends RestClient implements RestUsers {
             return clt_getUser(userId, password);
         });
     }
-
+/*
+    @Override
+    public User getUserbyId(String userId){
+        return  super.reTry(() -> {
+            return clt_getUserbyId(userId);
+        });
+    }
+ */
     @Override
     public User updateUser(String userId, String password, User user) {
         // TO test
@@ -120,6 +127,19 @@ public class RestUsersClient extends RestClient implements RestUsers {
         return null;
     }
 
+    private User clt_getUserbyId(String userId){
+        Response r = target.path(userId)
+                .request()
+                .accept(MediaType.APPLICATION_JSON)
+                .get();
+
+        if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
+            return r.readEntity(User.class);
+        } else
+            System.out.println("Error, HTTP error status: " + r.getStatus());
+        return null;
+    }
+
     private User clt_updateUser(String userId, String password, User user) {
 
         Response r = target.path(userId)
@@ -157,4 +177,6 @@ public class RestUsersClient extends RestClient implements RestUsers {
 
             return r.getStatus();
     }
+
+
 }

@@ -75,32 +75,75 @@ public class DirResources implements RestDirectory {
 
     @Override
     public void deleteFile(String filename, String userId, String password) {
-
+        User u = usersClient.getUser(userId, password);
+        int status = usersClient.checkPasssword(userId,password);
+        FileInfo file = directories.get(userId + "/" + filename);
+        if (u != null && file != null) {
+            filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
+            directories.remove(userId + "/" + filename);
+            filesIDs.remove(userId + "/" + filename);
+        } else if (status == 404 || file == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else if(status == 403)
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        else
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
     @Override
     public void shareFile(String filename, String userId, String userIdShare, String password) {
 
+        User u = usersClient.getUser(userId, password);
+        //User ush = usersClient.getUserbyId(userIdShare);
+        int status = usersClient.checkPasssword(userId,password);
+        FileInfo file = directories.get(userId + "/" + filename);
+        if (u != null && file != null) {
+            Set<String> sharedWith = file.getSharedWith();
+            sharedWith.add(userIdShare);
+            file.setSharedWith(sharedWith);
+            throw new WebApplicationException(Response.Status.NO_CONTENT);
+        } else if (u == null || file == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else if(status == 403)
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        else
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
     @Override
     public void unshareFile(String filename, String userId, String userIdShare, String password) {
+        User u = usersClient.getUser(userId, password);
+        //User ush = usersClient.getUserbyId(userIdShare);
+        int status = usersClient.checkPasssword(userId,password);
+        FileInfo file = directories.get(userId + "/" + filename);
+        if (u != null && file != null) {
+            Set<String> sharedWith = file.getSharedWith();
+            sharedWith.remove(userIdShare);
+            file.setSharedWith(sharedWith);
+            throw new WebApplicationException(Response.Status.NO_CONTENT);
+        } else if (u == null || file == null)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else if(status == 403)
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        else
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
 
     }
 
     @Override
     public byte[] getFile(String filename, String userId, String accUserId, String password) {
 
-        User u = usersClient.getUser(accUserId, password);
+        User u = usersClient.getUser(userId,password);
+        User accu = usersClient.getUser(accUserId, password);
         int status = usersClient.checkPasssword(accUserId,password);
         FileInfo file = directories.get(userId + "/" + filename);
-        if (u != null && file != null) {
+        if (u != null && accu != null && file != null) {
             throw new WebApplicationException(
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
-        } else if (status == 404 || file == null)
+        } else if (u == null || accu == null || file == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if(status == 403)
+        else if(status == 403 || !file.getSharedWith().contains(accUserId))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);

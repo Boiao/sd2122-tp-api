@@ -37,16 +37,26 @@ public class RestDirClient extends RestClient implements RestDirectory {
 
     @Override
     public void deleteFile(String filename, String userId, String password) {
-
+         super.reTry(() -> {
+            clt_deleteFile(filename, userId, password);
+            return null;
+        });
     }
 
     @Override
     public void shareFile(String filename, String userId, String userIdShare, String password) {
+        super.reTry(() -> {
+            clt_shareFile(filename, userId, userIdShare, password);
+            return null;
+        });
     }
 
     @Override
     public void unshareFile(String filename, String userId, String userIdShare, String password) {
-
+        super.reTry(() -> {
+            clt_unshareFile(filename, userId, userIdShare, password);
+            return null;
+        });
     }
 
     @Override
@@ -75,15 +85,42 @@ public class RestDirClient extends RestClient implements RestDirectory {
 
         return null;
     }
-/*
-    private Void clt_shareFile(String filename, String userId, String userIdShare, String password){
 
+    private void clt_deleteFile(String filename, String userId, String password){
+        Response r = target.path(userId).path(filename)
+                .queryParam(PASSWORD,password)
+                .request()
+                .delete();
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+            System.out.println("Deleted successfully");
+            else
+        System.out.println("Error, HTTP error status: " + r.getStatus());
     }
 
-    private Void clt_unshareFile(String filename, String userId, String userIdShare, String password){
+    private void clt_shareFile(String filename, String userId, String userIdShare, String password){
+        Response r = target.path(userId).path(filename).path("share").path(userIdShare)
+                .queryParam(PASSWORD,password)
+                .request()
+                .post(Entity.entity(null,MediaType.APPLICATION_JSON));
 
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+            System.out.println("Shared successfully");
+        else
+            System.out.println("Error, HTTP error status: " + r.getStatus());
     }
-*/
+
+        private void clt_unshareFile(String filename, String userId, String userIdShare, String password){
+            Response r = target.path(userId).path(filename).path("share").path(userIdShare)
+                    .queryParam(PASSWORD,password)
+                    .request()
+                    .post(Entity.entity(null,MediaType.APPLICATION_JSON));
+
+            if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+                System.out.println("Shared successfully");
+            else
+                System.out.println("Error, HTTP error status: " + r.getStatus());
+        }
+
     private byte[] clt_getFile(String filename, String userId, String accUserId, String password){
         Response r = target.path(userId).path(filename)
                 .queryParam(ACCUSER,accUserId)

@@ -58,6 +58,7 @@ public class RestFilesClient extends RestClient implements RestFiles {
 
     public void clt_deleteFile(String fileId) {
         Response r = target.path(fileId)
+                .queryParam(TOKEN,"")
                 .request()
                 .delete();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
