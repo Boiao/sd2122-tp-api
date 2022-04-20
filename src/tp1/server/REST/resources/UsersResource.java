@@ -75,7 +75,7 @@ public class UsersResource implements RestUsers {
 
 /*
 	@Override
-	public User getUserbyId(String userId){
+	public int getUserbyId(String userId){
 
 		User user = users.get(userId);
 

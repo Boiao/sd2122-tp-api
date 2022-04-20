@@ -52,10 +52,9 @@ public interface RestUsers {
 	User getUser(@PathParam("userId") String userId, @QueryParam("password") String password);
 /*
 	@GET
-	@Path("/{userId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	User getUserbyId(@PathParam("userId") String userId);
-*/
+	int getUserbyId(@QueryParam("userId") String userId);
+ */
 	/**
 	 * Modifies the information of a user. Values of null in any field of the user will be 
 	 * considered as if the the fields is not to be modified (the id cannot be modified).

@@ -94,15 +94,17 @@ public class DirResources implements RestDirectory {
     public void shareFile(String filename, String userId, String userIdShare, String password) {
 
         User u = usersClient.getUser(userId, password);
-        //User ush = usersClient.getUserbyId(userIdShare);
+        int ushstatus = usersClient.checkPasssword(userIdShare,null);
+        System.out.println("SHAREUSER STATUS:" + ushstatus);
         int status = usersClient.checkPasssword(userId,password);
         FileInfo file = directories.get(userId + "/" + filename);
-        if (u != null && file != null) {
+        System.out.println("USER STATUS:" + status);
+        if ((ushstatus == 403 || ushstatus == 200) && u != null && file != null) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.add(userIdShare);
             file.setSharedWith(sharedWith);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
-        } else if (u == null || file == null)
+        } else if (ushstatus == 404 || status == 404 || file == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -113,15 +115,15 @@ public class DirResources implements RestDirectory {
     @Override
     public void unshareFile(String filename, String userId, String userIdShare, String password) {
         User u = usersClient.getUser(userId, password);
-        //User ush = usersClient.getUserbyId(userIdShare);
+        int ushstatus = usersClient.checkPasssword(userIdShare,null);
         int status = usersClient.checkPasssword(userId,password);
         FileInfo file = directories.get(userId + "/" + filename);
-        if (u != null && file != null) {
+        if ((ushstatus == 403 || ushstatus == 200) && u != null && file != null) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.remove(userIdShare);
             file.setSharedWith(sharedWith);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
-        } else if (u == null || file == null)
+        } else if (ushstatus == 404 || status == 404 || file == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -133,15 +135,15 @@ public class DirResources implements RestDirectory {
     @Override
     public byte[] getFile(String filename, String userId, String accUserId, String password) {
 
-        User u = usersClient.getUser(userId,password);
+        int ownderstatus = usersClient.checkPasssword(userId,null);
         User accu = usersClient.getUser(accUserId, password);
         int status = usersClient.checkPasssword(accUserId,password);
         FileInfo file = directories.get(userId + "/" + filename);
-        if (u != null && accu != null && file != null) {
+        if ((ownderstatus == 403 || ownderstatus == 200) && accu != null && file != null) {
             throw new WebApplicationException(
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
-        } else if (u == null || accu == null || file == null)
+        } else if (ownderstatus == 404 || status == 404 || file == null)
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403 || !file.getSharedWith().contains(accUserId))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
