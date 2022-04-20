@@ -69,7 +69,10 @@ public class RestDirClient extends RestClient implements RestDirectory {
 
     @Override
     public List<FileInfo> lsFile(String userId, String password) {
-        return null;
+
+        return super.reTry(()->{
+            return clt_lsFile(userId, password);
+        });
     }
 
     private FileInfo clt_writeFile(String filename, byte[] data, String userId, String password){
@@ -129,6 +132,21 @@ public class RestDirClient extends RestClient implements RestDirectory {
                 .get();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
             return r.readEntity(byte[].class);
+        } else
+            System.out.println("Error, HTTP error status: " + r.getStatus());
+        return null;
+    }
+
+    private List<FileInfo> clt_lsFile(String userId, String password) {
+
+        Response r = target.path(userId)
+                .queryParam(PASSWORD,password).request()
+                .accept(MediaType.APPLICATION_JSON)
+                .get();
+
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
+            return r.readEntity(new GenericType<List<FileInfo>>() {
+            });
         } else
             System.out.println("Error, HTTP error status: " + r.getStatus());
         return null;

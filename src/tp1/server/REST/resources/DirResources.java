@@ -11,6 +11,7 @@ import tp1.api.service.util.Directory;
 import tp1.clients.REST.RestFilesClient;
 import tp1.clients.REST.RestUsersClient;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.*;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 public class DirResources implements RestDirectory {
 
     private final Map<String, Map<String, FileInfo>> directories = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, FileInfo>> access = new ConcurrentHashMap<>();
     private final Map<String, String> filesIDs = new ConcurrentHashMap<>();
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
     private RestUsersClient usersClient;
@@ -54,12 +56,13 @@ public class DirResources implements RestDirectory {
                 file = new FileInfo(userId, filename, filesURI + "/files/" + fileid, new HashSet<>());
                 filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
                 filesClient.writeFile(String.valueOf(fileid), data, "");
+
                 fileid++;
             } else {
                 file = new FileInfo(userId, filename, filesURI + "/files/" + oldID, new HashSet<>());
                 filesClient.writeFile(oldID, data, "");
             }
-
+            giveAccess(userId,filename,file);
             if(directories.containsKey(userId))
                 directories.get(userId).put(filename,file);
             else{
@@ -84,9 +87,11 @@ public class DirResources implements RestDirectory {
         User u = usersClient.getUser(userId, password);
         int status = usersClient.checkPasssword(userId,password);
         if (u != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
+            FileInfo file = directories.get(userId).get(filename);
             filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
             directories.get(userId).remove(filename);
             filesIDs.remove(userId + "/" + filename);
+            removeAccess(filename,file);
         } else if (status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
@@ -111,6 +116,7 @@ public class DirResources implements RestDirectory {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.add(userIdShare);
             file.setSharedWith(sharedWith);
+            giveAccess(userIdShare,filename, file);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
         } else if (ushstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -130,6 +136,8 @@ public class DirResources implements RestDirectory {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.remove(userIdShare);
             file.setSharedWith(sharedWith);
+            if(!userId.equals(userIdShare))
+            access.get(userIdShare).remove(filename);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
         } else if (ushstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
@@ -162,7 +170,17 @@ public class DirResources implements RestDirectory {
 
     @Override
     public List<FileInfo> lsFile(String userId, String password) {
-        return null;
+        int status = usersClient.checkPasssword(userId,password);
+        User u = usersClient.getUser(userId,password);
+        if(u != null) {
+            List<FileInfo> res = new ArrayList<>(access.get(userId).values());
+            return res;
+        }else if( status == 404)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else if( status == 403)
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        else
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 
     private URI getServiceURI(String serviceName) {
@@ -179,5 +197,19 @@ public class DirResources implements RestDirectory {
         return uri;
 
 
+    }
+    private void giveAccess(String userId,String filename, FileInfo file){
+        if(access.containsKey(userId))
+            access.get(userId).put(filename, file);
+        else {
+            Map<String,FileInfo> filesacc = new ConcurrentHashMap();
+            filesacc.put(filename,file);
+            access.put(userId,filesacc);
+        }
+    }
+    private void removeAccess(String filename ,FileInfo file){
+        for(String id : access.keySet()){
+            access.get(id).remove(filename,file);
+        }
     }
 }
