@@ -11,6 +11,7 @@ import tp1.api.service.util.Directory;
 import tp1.clients.REST.RestFilesClient;
 import tp1.clients.REST.RestUsersClient;
 
+import javax.swing.*;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
@@ -27,7 +28,7 @@ public class DirResources implements RestDirectory {
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
     private RestUsersClient usersClient;
     private RestFilesClient filesClient;
-    private Discovery discv = new Discovery(null, "Directory", null);
+    private Discovery discv = new Discovery(null, "directory", null);
     private URI usersURI;
     private URI filesURI;
     private int fileid;
@@ -103,15 +104,28 @@ public class DirResources implements RestDirectory {
     }
 
     @Override
+    public void deleteUserFiles(String userId, String password) {
+            Collection<FileInfo> userfiles = directories.get(userId).values();
+            for(FileInfo f : userfiles){
+                Set<String> users = access.keySet();
+                String filename = f.getFilename();
+                filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
+                for(String id : users)
+                    access.get(id).remove(filename, f);
+
+            }
+            directories.remove(userId);
+            access.remove(userId);
+
+    }
+
+    @Override
     public void shareFile(String filename, String userId, String userIdShare, String password) {
 
         User u = usersClient.getUser(userId, password);
         int ushstatus = usersClient.checkPasssword(userIdShare,null);
-        System.out.println("SHAREUSER STATUS:" + ushstatus);
         int status = usersClient.checkPasssword(userId,password);
         FileInfo file = directories.get(userId).get(filename);
-        System.out.println("USER STATUS:" + status);
-
         if ((ushstatus == 403 || ushstatus == 200) && u != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.add(userIdShare);
@@ -151,17 +165,21 @@ public class DirResources implements RestDirectory {
     @Override
     public byte[] getFile(String filename, String userId, String accUserId, String password) {
 
-        int ownderstatus = usersClient.checkPasssword(userId,null);
+        int status = usersClient.checkPasssword(userId,null);
         User accu = usersClient.getUser(accUserId, password);
-        int status = usersClient.checkPasssword(accUserId,password);
-        FileInfo file = directories.get(userId).get(filename);
-        if ((ownderstatus == 403 || ownderstatus == 200) && accu != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
+        int accstatus = usersClient.checkPasssword(accUserId,password);
+        FileInfo file;
+        //System.out.println("STATUS: " + accstatus + " " + status);
+        if ((status == 403 || status == 200) && accu != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
+            file = directories.get(userId).get(filename);
+            if(!file.getSharedWith().contains(accUserId) && !accUserId.equals(userId))
+                throw new WebApplicationException(Response.Status.FORBIDDEN);
             throw new WebApplicationException(
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
-        } else if (ownderstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
+        } else if (status == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else if(status == 403 || !file.getSharedWith().contains(accUserId))
+        else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
@@ -173,7 +191,9 @@ public class DirResources implements RestDirectory {
         int status = usersClient.checkPasssword(userId,password);
         User u = usersClient.getUser(userId,password);
         if(u != null) {
-            List<FileInfo> res = new ArrayList<>(access.get(userId).values());
+            List<FileInfo> res = new ArrayList<>();
+            if(access.containsKey(userId))
+                res = new ArrayList<>(access.get(userId).values());
             return res;
         }else if( status == 404)
             throw new WebApplicationException(Response.Status.NOT_FOUND);

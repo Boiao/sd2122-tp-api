@@ -2,6 +2,8 @@ package tp1.api.service.util;
 
 import java.util.*;
 
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import tp1.api.FileInfo;
 
 public interface Directory {
@@ -37,7 +39,9 @@ public interface Directory {
 	 *         FORBIDDEN if the password is incorrect.
 	 * 	   BAD_REQUEST otherwise.
 	 */
-	//Result<void> deleteFile(String filename, String userId, String password);
+	Result<Void> deleteFile(String filename, String userId, String password);
+
+	Result<Void> deleteUserFiles( String userId, String password);
 
 	/**
 	 * Share the file "userId/filename" with another user. 

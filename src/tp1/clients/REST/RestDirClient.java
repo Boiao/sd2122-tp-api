@@ -43,6 +43,13 @@ public class RestDirClient extends RestClient implements RestDirectory {
         });
     }
 
+    public void deleteUserFiles(String userId, String password){
+        super.reTry(() -> {
+            clt_deleteUserFiles(userId, password);
+            return null;
+        });
+    }
+
     @Override
     public void shareFile(String filename, String userId, String userIdShare, String password) {
         super.reTry(() -> {
@@ -75,6 +82,8 @@ public class RestDirClient extends RestClient implements RestDirectory {
         });
     }
 
+
+
     private FileInfo clt_writeFile(String filename, byte[] data, String userId, String password){
             Response r = target.path(userId).path(filename)
                     .queryParam(PASSWORD,password)
@@ -98,6 +107,19 @@ public class RestDirClient extends RestClient implements RestDirectory {
             System.out.println("Deleted successfully");
             else
         System.out.println("Error, HTTP error status: " + r.getStatus());
+    }
+
+    private void clt_deleteUserFiles(String userId, String password){
+
+        Response r = target.path(userId)
+                .queryParam(PASSWORD,password)
+                .request()
+                .delete();
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+            System.out.println("Deleted successfully");
+        else
+            System.out.println("Error, HTTP error status: " + r.getStatus());
+
     }
 
     private void clt_shareFile(String filename, String userId, String userIdShare, String password){

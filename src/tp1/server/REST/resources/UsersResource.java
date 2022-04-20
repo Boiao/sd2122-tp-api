@@ -1,5 +1,6 @@
 package tp1.server.REST.resources;
 
+import java.net.URI;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -10,8 +11,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
+import tp1.Discovery;
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
+import tp1.clients.REST.RestDirClient;
 
 @Singleton
 public class UsersResource implements RestUsers {
@@ -19,8 +22,14 @@ public class UsersResource implements RestUsers {
 	public final Map<String, User> users = new HashMap<>();
 
 	private static Logger Log = Logger.getLogger(UsersResource.class.getName());
+	private  RestDirClient dirClient;
+
+	private Discovery discv = new Discovery(null, "users", null);
 
 	public UsersResource() {
+		discv.listener();
+		dirClient = new RestDirClient(getServiceURI("directory"));
+
 	}
 
 	@Override
@@ -149,8 +158,9 @@ public class UsersResource implements RestUsers {
 			Log.info("Password is incorrect.");
 			throw new WebApplicationException( Status.FORBIDDEN );
 		}
-
 		users.remove(userId);
+		dirClient.deleteUserFiles(userId,password);
+
 
 		return user;
 	}
@@ -169,6 +179,22 @@ public class UsersResource implements RestUsers {
 		}
 
 		return res;
+	}
+
+	private URI getServiceURI(String serviceName) {
+
+		URI uri = null;
+		discv.listener();
+		while (true) {
+			if (discv.knownUrisOf(serviceName).length > 0) {
+				uri = discv.knownUrisOf(serviceName)[0];
+				break;
+			}
+		}
+
+		return uri;
+
+
 	}
 
 

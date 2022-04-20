@@ -63,6 +63,12 @@ public interface RestDirectory {
 	void deleteFile(@PathParam("filename") String filename, 
 			@PathParam("userId") String userId, @QueryParam("password") String password);
 
+
+	@DELETE
+	@Path("/{userId}")
+	void deleteUserFiles(@PathParam("userId") String userId, @QueryParam("password") String password);
+
+
 	/**
 	 * Share the file "userId/filename" with another user. 
 	 * Only the owner (userId) can share the file.
@@ -81,6 +87,7 @@ public interface RestDirectory {
 	 *         403 if the password is incorrect.
 	 * 		   400 otherwise.
 	 */
+
 	@POST
 	@Path("/{userId}/{filename}/share/{userIdShare}")
 	void shareFile(@PathParam("filename") String filename, @PathParam("userId") String userId, 
