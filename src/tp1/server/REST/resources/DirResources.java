@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 @Singleton
 public class DirResources implements RestDirectory {
 
-    private final Map<String, FileInfo> directories = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, FileInfo>> directories = new ConcurrentHashMap<>();
     private final Map<String, String> filesIDs = new ConcurrentHashMap<>();
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
     private RestUsersClient usersClient;
@@ -52,14 +52,20 @@ public class DirResources implements RestDirectory {
             FileInfo file;
             if(oldID == null) {
                 file = new FileInfo(userId, filename, filesURI + "/files/" + fileid, new HashSet<>());
-                directories.put(userId + "/" + filename, file);
                 filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
                 filesClient.writeFile(String.valueOf(fileid), data, "");
                 fileid++;
             } else {
                 file = new FileInfo(userId, filename, filesURI + "/files/" + oldID, new HashSet<>());
-                directories.put(userId + "/" + filename, file);
                 filesClient.writeFile(oldID, data, "");
+            }
+
+            if(directories.containsKey(userId))
+                directories.get(userId).put(filename,file);
+            else{
+                Map<String,FileInfo> usersfiles = new ConcurrentHashMap<>();
+                usersfiles.put(filename,file);
+                directories.put(userId,usersfiles);
             }
 
             return file;
@@ -77,17 +83,18 @@ public class DirResources implements RestDirectory {
     public void deleteFile(String filename, String userId, String password) {
         User u = usersClient.getUser(userId, password);
         int status = usersClient.checkPasssword(userId,password);
-        FileInfo file = directories.get(userId + "/" + filename);
-        if (u != null && file != null) {
+        if (u != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
-            directories.remove(userId + "/" + filename);
+            directories.get(userId).remove(filename);
             filesIDs.remove(userId + "/" + filename);
-        } else if (status == 404 || file == null)
+        } else if (status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         else
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+
     }
 
     @Override
@@ -97,14 +104,15 @@ public class DirResources implements RestDirectory {
         int ushstatus = usersClient.checkPasssword(userIdShare,null);
         System.out.println("SHAREUSER STATUS:" + ushstatus);
         int status = usersClient.checkPasssword(userId,password);
-        FileInfo file = directories.get(userId + "/" + filename);
+        FileInfo file = directories.get(userId).get(filename);
         System.out.println("USER STATUS:" + status);
-        if ((ushstatus == 403 || ushstatus == 200) && u != null && file != null) {
+
+        if ((ushstatus == 403 || ushstatus == 200) && u != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.add(userIdShare);
             file.setSharedWith(sharedWith);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
-        } else if (ushstatus == 404 || status == 404 || file == null)
+        } else if (ushstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -117,13 +125,13 @@ public class DirResources implements RestDirectory {
         User u = usersClient.getUser(userId, password);
         int ushstatus = usersClient.checkPasssword(userIdShare,null);
         int status = usersClient.checkPasssword(userId,password);
-        FileInfo file = directories.get(userId + "/" + filename);
-        if ((ushstatus == 403 || ushstatus == 200) && u != null && file != null) {
+        FileInfo file = directories.get(userId).get(filename);
+        if ((ushstatus == 403 || ushstatus == 200) && u != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.remove(userIdShare);
             file.setSharedWith(sharedWith);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
-        } else if (ushstatus == 404 || status == 404 || file == null)
+        } else if (ushstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403)
             throw new WebApplicationException(Response.Status.FORBIDDEN);
@@ -138,12 +146,12 @@ public class DirResources implements RestDirectory {
         int ownderstatus = usersClient.checkPasssword(userId,null);
         User accu = usersClient.getUser(accUserId, password);
         int status = usersClient.checkPasssword(accUserId,password);
-        FileInfo file = directories.get(userId + "/" + filename);
-        if ((ownderstatus == 403 || ownderstatus == 200) && accu != null && file != null) {
+        FileInfo file = directories.get(userId).get(filename);
+        if ((ownderstatus == 403 || ownderstatus == 200) && accu != null && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             throw new WebApplicationException(
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
-        } else if (ownderstatus == 404 || status == 404 || file == null)
+        } else if (ownderstatus == 404 || status == 404 || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         else if(status == 403 || !file.getSharedWith().contains(accUserId))
             throw new WebApplicationException(Response.Status.FORBIDDEN);
