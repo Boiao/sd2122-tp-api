@@ -206,7 +206,6 @@ public class DirResources implements RestDirectory {
     private URI getServiceURI(String serviceName) {
 
         URI uri = null;
-        discv.listener();
         while (true) {
             if (discv.knownUrisOf(serviceName).length > 0) {
                 uri = discv.knownUrisOf(serviceName)[0];

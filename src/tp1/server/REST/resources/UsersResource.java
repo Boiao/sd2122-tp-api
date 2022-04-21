@@ -159,7 +159,7 @@ public class UsersResource implements RestUsers {
 			throw new WebApplicationException( Status.FORBIDDEN );
 		}
 		users.remove(userId);
-		dirClient.deleteUserFiles(userId,password);
+		//dirClient.deleteUserFiles(userId,password);
 
 
 		return user;

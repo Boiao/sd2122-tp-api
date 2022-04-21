@@ -128,20 +128,7 @@ public class RestUsersClient extends RestClient implements RestUsers {
             System.out.println("Error, HTTP error status: " + r.getStatus());
         return null;
     }
-/*
-    private int clt_getUserbyId(String userId){
-        Response r = target
-                .queryParam(USER_ID,userId).request()
-                .accept(MediaType.APPLICATION_JSON)
-                .get();
 
-        if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
-            return r.readEntity(Integer.class);
-        } else
-            System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
-    }
- */
     private User clt_updateUser(String userId, String password, User user) {
 
         Response r = target.path(userId)
