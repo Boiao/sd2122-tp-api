@@ -13,7 +13,7 @@ import tp1.api.service.util.Result;
 
 import java.net.URI;
 
-public class RestFilesClient extends RestClient implements RestFiles {
+public class RestFilesClient extends RestClient implements Files {
 
     final WebTarget target;
 
@@ -22,29 +22,32 @@ public class RestFilesClient extends RestClient implements RestFiles {
         target = client.target(serverURI).path(RestFiles.PATH);
     }
     @Override
-    public void writeFile(String fileId, byte[] data, String token) {
-        super.reTry(() -> {clt_writeFile(fileId,data,token);
-            return null;
+    public Result<Void> writeFile(String fileId, byte[] data, String token) {
+       return super.reTry(() -> {
+           return Result.ok(clt_writeFile(fileId,data,token));
+
         });
     }
 
     @Override
-    public void deleteFile(String fileId, String token) {
-        super.reTry(() -> {clt_deleteFile(fileId);
-            return null;
+    public Result<Void> deleteFile(String fileId, String token) {
+       return super.reTry(() -> {
+          return Result.ok(clt_deleteFile(fileId));
+
         });
+
     }
 
     @Override
-    public byte[] getFile(String fileId, String token) {
+    public Result<byte[]> getFile(String fileId, String token) {
 
         return super.reTry(()->{
-            return clt_getFile(fileId);
+            return Result.ok(clt_getFile(fileId));
         });
 
     }
 
-    public void clt_writeFile(String fileId, byte[] data, String token){
+    public Void clt_writeFile(String fileId, byte[] data, String token){
         Response r = target.path(fileId).request()
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
@@ -54,9 +57,10 @@ public class RestFilesClient extends RestClient implements RestFiles {
             System.out.println("Error, HTTP error status: " + r.getStatus());
 
 
+        return null;
     }
 
-    public void clt_deleteFile(String fileId) {
+    public Void clt_deleteFile(String fileId) {
         Response r = target.path(fileId)
                 .queryParam(TOKEN,"")
                 .request()
@@ -65,6 +69,7 @@ public class RestFilesClient extends RestClient implements RestFiles {
 
         } else
             System.out.println("Error, HTTP error status: " + r.getStatus());
+        return null;
     }
 
     public byte[] clt_getFile(String fileId) {

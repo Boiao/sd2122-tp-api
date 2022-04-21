@@ -3,6 +3,10 @@ package tp1.api.service.util;
 
 public interface Files {
 
+	static final String PATH="/files";
+	public static final String TOKEN = "token";
+	public static final String FILEID = "fileid";
+
 	/**
 	 * Write a file. If the file exists, overwrites the contents.
 	 * 
