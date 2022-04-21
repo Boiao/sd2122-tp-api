@@ -47,7 +47,7 @@ public class JavaDirectory implements Directory {
         User u = usersClient.getUser(userId, password).value();
         int status = usersClient.checkPasssword(userId,password);
 
-        if (u != null && u.getPassword().equals(password)) {
+        if (u != null && u.getPassword().equals(password) ) {
             String oldID = filesIDs.get(userId + "/" + filename);
             FileInfo file;
             if(oldID == null) {
@@ -57,7 +57,8 @@ public class JavaDirectory implements Directory {
 
                 fileid++;
             } else {
-                file = new FileInfo(userId, filename, filesURI + "/files/" + oldID, new HashSet<>());
+                Set<String> sharedwith = directories.get(userId).get(filename).getSharedWith();
+                file = new FileInfo(userId, filename, filesURI + "/files/" + oldID, sharedwith);
                 filesClient.writeFile(oldID, data, "");
             }
             giveAccess(userId,filename,file);
