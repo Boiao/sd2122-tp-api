@@ -20,7 +20,7 @@ import tp1.api.service.util.Users;
 import static tp1.api.service.rest.RestUsers.PASSWORD;
 import static tp1.api.service.rest.RestUsers.QUERY;
 
-public class RestUsersClient extends RestClient implements RestUsers {
+public class RestUsersClient extends RestClient implements Users {
 
     final WebTarget target;
 
@@ -30,18 +30,18 @@ public class RestUsersClient extends RestClient implements RestUsers {
     }
 
     @Override
-    public String createUser(User user) {
+    public Result<String> createUser(User user) {
         
         return super.reTry(() -> {
-            return clt_createUser(user);
+            return Result.ok(clt_createUser(user));
         });
     }
 
     @Override
-    public User getUser(String userId, String password) {
+    public Result<User> getUser(String userId, String password) {
         // TO test
         return super.reTry(() -> {
-            return clt_getUser(userId, password);
+            return Result.ok(clt_getUser(userId, password));
         });
     }
 /*
@@ -55,24 +55,26 @@ public class RestUsersClient extends RestClient implements RestUsers {
     }
 */
     @Override
-    public User updateUser(String userId, String password, User user) {
+    public Result<User> updateUser(String userId, String password, User user) {
         // TO test
         return super.reTry(() -> {
-            return clt_updateUser(userId, password, user);
+            return Result.ok(clt_updateUser(userId, password, user));
         });
     }
 
     @Override
-    public User deleteUser(String userId, String password) {
+    public Result<User> deleteUser(String userId, String password) {
         // TO test
         return super.reTry(() -> {
-            return clt_deleteUser(userId, password);
+            return Result.ok(clt_deleteUser(userId, password));
         });
     }
 
     @Override
-    public List<User> searchUsers(String pattern) {
-        return super.reTry(() -> clt_searchUsers(pattern));
+    public Result<List<User>> searchUsers(String pattern) {
+        return super.reTry(() ->{
+                return Result.ok(clt_searchUsers(pattern));
+        });
     }
 
     @GET
@@ -128,20 +130,7 @@ public class RestUsersClient extends RestClient implements RestUsers {
             System.out.println("Error, HTTP error status: " + r.getStatus());
         return null;
     }
-/*
-    private int clt_getUserbyId(String userId){
-        Response r = target
-                .queryParam(USER_ID,userId).request()
-                .accept(MediaType.APPLICATION_JSON)
-                .get();
 
-        if (r.getStatus() == Status.OK.getStatusCode() && r.hasEntity()) {
-            return r.readEntity(Integer.class);
-        } else
-            System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
-    }
- */
     private User clt_updateUser(String userId, String password, User user) {
 
         Response r = target.path(userId)
