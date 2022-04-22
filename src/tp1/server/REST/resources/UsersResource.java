@@ -1,22 +1,17 @@
 package tp1.server.REST.resources;
 
-import java.net.URI;
 import java.util.*;
-import java.util.logging.Logger;
+
 
 import jakarta.inject.Singleton;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
+
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
-import tp1.Discovery;
+
 import tp1.api.User;
 import tp1.api.service.rest.RestUsers;
 import tp1.api.service.util.Users;
-import tp1.clients.REST.RestDirClient;
+
 import tp1.service.JavaUsers;
 
 @Singleton
