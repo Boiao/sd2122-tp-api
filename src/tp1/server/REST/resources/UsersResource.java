@@ -34,7 +34,7 @@ public class UsersResource implements RestUsers {
         if( result.isOK() )
             return result.value();
         else
-        throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+        throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class UsersResource implements RestUsers {
         if(result.isOK())
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 
@@ -53,7 +53,7 @@ public class UsersResource implements RestUsers {
         if(result.isOK())
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 
@@ -62,7 +62,7 @@ public class UsersResource implements RestUsers {
         if(result.isOK())
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 
@@ -72,7 +72,7 @@ public class UsersResource implements RestUsers {
         if(result.isOK())
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 }
