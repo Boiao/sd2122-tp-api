@@ -11,7 +11,11 @@ import java.util.List;
 public class SoapUsersWebService implements SoapUsers{
     @Override
     public String createUser(User user) throws UsersException {
-        return null;
+        var result = impl.createUser( user );
+        if( result.isOK() )
+            return return result.value();
+        else
+        throw new UsersException(result.error().toString()) ;
     }
 
     @Override
