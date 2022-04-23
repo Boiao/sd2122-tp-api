@@ -6,12 +6,25 @@ import tp1.api.service.soap.UsersException;
 import tp1.api.service.util.Users;
 import tp1.service.JavaUsers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 public class SoapUsersWebService implements SoapUsers{
+
+    static Logger Log = Logger.getLogger(SoapUsersWebService.class.getName());
+
+    final Users impl = new JavaUsers();
+
     @Override
     public String createUser(User user) throws UsersException {
-        return null;
+        var result = impl.createUser( user );
+        if( result.isOK() )
+            return result.value();
+        else
+        throw new UsersException(result.error().toString()) ;
+
     }
 
     @Override
