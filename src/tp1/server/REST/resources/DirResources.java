@@ -17,6 +17,7 @@ import tp1.service.JavaUsers;
 import javax.swing.*;
 import java.io.File;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +28,7 @@ public class DirResources implements RestDirectory {
 
     final Directory impl = new JavaDirectory();
 
-    public DirResources() {
+    public DirResources() throws MalformedURLException {
 
     }
 
@@ -37,21 +38,21 @@ public class DirResources implements RestDirectory {
         if( result.isOK())
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
     public void deleteFile(String filename, String userId, String password) {
         var result = impl.deleteFile(filename, userId, password);
         if( !result.isOK() )
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
     public void deleteUserFiles(String userId, String password) {
         var result = impl.deleteUserFiles(userId, password);
         if( !result.isOK() )
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
@@ -59,14 +60,14 @@ public class DirResources implements RestDirectory {
 
         var result = impl.shareFile(filename, userId, userIdShare, password);
         if( !result.isOK() )
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
     public void unshareFile(String filename, String userId, String userIdShare, String password) {
         var result = impl.unshareFile(filename, userId, userIdShare, password);
         if( !result.isOK() )
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
     @Override
@@ -76,7 +77,7 @@ public class DirResources implements RestDirectory {
         if( result.isOK() )
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 
@@ -86,7 +87,7 @@ public class DirResources implements RestDirectory {
         if( result.isOK() )
             return result.value();
         else
-            throw new WebApplicationException(result.toString(), Response.Status.valueOf(result.error().toString()));
+            throw new WebApplicationException(Response.Status.valueOf(result.error().toString()));
     }
 
 }

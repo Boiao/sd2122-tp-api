@@ -13,41 +13,56 @@ import tp1.clients.SOAP.SoapUsersClient;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ClientFactory {
     static Discovery discv = new Discovery(null,null,null);
 
-    public static Users getUserClient() {
+    public ClientFactory(){
+        discv.listener();
+    }
+
+    public static Users getUserClient(String serverURI) {
         // use discovery to find a uri of the Users service;
-        String serverURI = getServiceURI("users");
         if( serverURI.endsWith("rest"))
             return new RestUsersClient( URI.create(serverURI) );
         else
             return new SoapUsersClient(URI.create(serverURI));
     }
 
-    public static Directory getDirClient() {
+    public static Directory getDirClient(String serverURI) {
         // use discovery to find a uri of the Users service;
-        String serverURI = getServiceURI("directory");
         if( serverURI.endsWith("rest"))
             return new RestDirClient( URI.create(serverURI) );
         else
             return new SoapDirClient();
     }
 
-    public static Files getFilesClient() {
-        // use discovery to find a uri of the Users service;
-        String serverURI = getServiceURI("files");
+    public static Files getFilesClient(String serverURI){
         if( serverURI.endsWith("rest"))
             return new RestFilesClient( URI.create(serverURI) );
         else
             return new SoapFilesClient();
     }
-
-    private static String getServiceURI(String serviceName) {
+/*
+    public static List<Files> getFilesClient() {
+        // use discovery to find a uri of the Users service;
+        List<URI> serverURI = getFilesURI("files");
+        List<Files> servers = new ArrayList<>();
+        for(URI uri : serverURI) {
+            if (uri.toString().endsWith("rest"))
+                servers.add(new RestFilesClient(uri));
+            else
+                servers.add(new SoapFilesClient());
+        }
+        return servers;
+    }
+*/
+    public static URI getServiceURI(String serviceName) {
 
         URI uri = null;
-        discv.listener();
         int tries = 0;
         while (tries < 10) {
             if (discv.knownUrisOf(serviceName).length > 0) {
@@ -55,6 +70,17 @@ public class ClientFactory {
                 break;
             }
         }
-        return uri.toString();
+        return uri;
+    }
+
+    public static List<URI> getFilesURI(String serviceName) {
+        List<URI> uri = new ArrayList<>();
+        int tries = 0;
+        while (tries <= 1000) {
+            //System.out.println(uri);
+            uri = Arrays.asList(discv.knownUrisOf("files"));
+            tries++;
+        }
+        return uri;
     }
 }

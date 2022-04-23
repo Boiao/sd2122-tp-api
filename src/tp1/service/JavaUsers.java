@@ -1,21 +1,21 @@
 package tp1.service;
 
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import tp1.Discovery;
 import tp1.api.User;
+import tp1.api.service.util.Directory;
 import tp1.api.service.util.Result;
 import tp1.api.service.util.Users;
+import tp1.clients.ClientFactory;
 import tp1.clients.REST.RestDirClient;
 import tp1.server.REST.resources.UsersResource;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
 
 public class JavaUsers implements Users {
 
@@ -23,10 +23,12 @@ public class JavaUsers implements Users {
 
     private static Logger Log = Logger.getLogger(UsersResource.class.getName());
 
+    private ClientFactory factory;
+
     private Discovery discv = new Discovery(null, "users", null);
 
     public JavaUsers() {
-
+    factory = new ClientFactory();
     }
 
     @Override
@@ -58,14 +60,15 @@ public class JavaUsers implements Users {
     public Result<User> getUser(String userId, String password) {
         Log.info("getUser : user = " + userId + "; pwd = " + password);
 
-        User user = users.get(userId);
+
 
         // Check if user exists
-        if (user == null) {
+        if (!users.containsKey(userId)) {
             Log.info("User does not exist.");
             //throw new WebApplicationException(Response.Status.NOT_FOUND);
             return Result.error(Result.ErrorCode.NOT_FOUND);
         }
+        User user = users.get(userId);
 
         // Check if user is valid
         if (userId == null || password == null) {
@@ -73,13 +76,14 @@ public class JavaUsers implements Users {
             //throw new WebApplicationException(Response.Status.FORBIDDEN);
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
-
         //Check if the password is correct
         if (!user.getPassword().equals(password)) {
             Log.info("Password is incorrect.");
             //throw new WebApplicationException(Response.Status.FORBIDDEN);
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
+
+
 
         return Result.ok(user);
     }
@@ -96,15 +100,13 @@ public class JavaUsers implements Users {
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
 
-        User user = users.get(userId);
-
         // Check if user exists
-        if (user == null) {
+        if (!users.containsKey(userId)) {
             Log.info("User does not exist.");
             //throw new WebApplicationException(Response.Status.NOT_FOUND);
             return Result.error(Result.ErrorCode.NOT_FOUND);
         }
-
+        User user = users.get(userId);
         //Check if the password is correct
         if (!user.getPassword().equals(password)) {
             Log.info("Password is incorrect.");
@@ -112,7 +114,7 @@ public class JavaUsers implements Users {
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
 
-        if (updatedUser.getUserId() == userId || updatedUser.getUserId() == null) {
+        //if (updatedUser.getUserId() == userId || updatedUser.getUserId() == null) {
 
             if (updatedUser.getPassword() != null)
                 user.setPassword(updatedUser.getPassword());
@@ -120,7 +122,7 @@ public class JavaUsers implements Users {
                 user.setEmail(updatedUser.getEmail());
             if (updatedUser.getFullName() != null)
                 user.setFullName(updatedUser.getFullName());
-        }
+
 
         return Result.ok(users.get(userId));
     }
@@ -137,15 +139,13 @@ public class JavaUsers implements Users {
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
 
-        User user = users.get(userId);
-
         // Check if user exists
-        if (user == null) {
+        if (!users.containsKey(userId)) {
             Log.info("User does not exist.");
             //throw new WebApplicationException(Response.Status.NOT_FOUND);
             return Result.error(Result.ErrorCode.NOT_FOUND);
         }
-
+        User user = users.get(userId);
         //Check if the password is correct
         if (!user.getPassword().equals(password)) {
             Log.info("Password is incorrect.");
@@ -153,10 +153,9 @@ public class JavaUsers implements Users {
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
         users.remove(userId);
-        RestDirClient dirClient = new RestDirClient(getServiceURI("directory"));
+        Directory dirClient = factory.getDirClient(factory.getServiceURI("directory").toString());
         if(dirClient != null)
             dirClient.deleteUserFiles(userId, password);
-
 
         return Result.ok(user);
     }

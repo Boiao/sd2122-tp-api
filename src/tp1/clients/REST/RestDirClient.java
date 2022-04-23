@@ -31,21 +31,21 @@ public class RestDirClient extends RestClient implements Directory {
     @Override
     public Result<FileInfo> writeFile(String filename, byte[] data, String userId, String password) {
         return super.reTry(() -> {
-            return Result.ok(clt_writeFile(filename,data,userId,password));
+            return clt_writeFile(filename,data,userId,password);
         });
     }
 
     @Override
     public Result<Void> deleteFile(String filename, String userId, String password) {
         return super.reTry(() -> {
-             return Result.ok(clt_deleteFile(filename, userId, password));
+             return clt_deleteFile(filename, userId, password);
 
         });
     }
-
+    @Override
     public Result<Void> deleteUserFiles(String userId, String password){
        return super.reTry(() -> {
-            return Result.ok(clt_deleteUserFiles(userId, password));
+            return clt_deleteUserFiles(userId, password);
         });
 
     }
@@ -53,7 +53,7 @@ public class RestDirClient extends RestClient implements Directory {
     @Override
     public Result<Void> shareFile(String filename, String userId, String userIdShare, String password) {
         return super.reTry(() -> {
-            return Result.ok(clt_shareFile(filename, userId, userIdShare, password));
+            return clt_shareFile(filename, userId, userIdShare, password);
 
         });
     }
@@ -61,7 +61,7 @@ public class RestDirClient extends RestClient implements Directory {
     @Override
     public Result<Void> unshareFile(String filename, String userId, String userIdShare, String password) {
         return super.reTry(() -> {
-           return Result.ok(clt_unshareFile(filename, userId, userIdShare, password));
+           return clt_unshareFile(filename, userId, userIdShare, password);
 
         });
     }
@@ -70,7 +70,7 @@ public class RestDirClient extends RestClient implements Directory {
     public Result<byte[]> getFile(String filename, String userId, String accUserId, String password) {
 
         return super.reTry(() -> {
-            return Result.ok(clt_getFile(filename,userId,accUserId,password));
+            return clt_getFile(filename,userId,accUserId,password);
         });
     }
 
@@ -78,92 +78,96 @@ public class RestDirClient extends RestClient implements Directory {
     public Result<List<FileInfo>> lsFile(String userId, String password) {
 
         return super.reTry(()->{
-            return Result.ok(clt_lsFile(userId, password));
+            return clt_lsFile(userId, password);
         });
     }
 
 
 
-    private FileInfo clt_writeFile(String filename, byte[] data, String userId, String password){
+    private Result<FileInfo> clt_writeFile(String filename, byte[] data, String userId, String password){
             Response r = target.path(userId).path(filename)
                     .queryParam(PASSWORD,password)
                     .request()
                     .accept(MediaType.APPLICATION_JSON)
                     .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
-            return r.readEntity(FileInfo.class);
-        else
+            return Result.ok(r.readEntity(FileInfo.class));
+        else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    private Void clt_deleteFile(String filename, String userId, String password){
+    private Result<Void> clt_deleteFile(String filename, String userId, String password){
         Response r = target.path(userId).path(filename)
                 .queryParam(PASSWORD,password)
                 .request()
                 .delete();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
-            System.out.println("Deleted successfully");
-            else
+           return Result.ok();
+            else{
         System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    private Void clt_deleteUserFiles(String userId, String password){
+    private Result<Void> clt_deleteUserFiles(String userId, String password){
 
         Response r = target.path(userId)
                 .queryParam(PASSWORD,password)
                 .request()
                 .delete();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
-            System.out.println("Deleted successfully");
-        else
+            return Result.ok();
+        else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    private Void clt_shareFile(String filename, String userId, String userIdShare, String password){
+    private Result<Void> clt_shareFile(String filename, String userId, String userIdShare, String password){
         Response r = target.path(userId).path(filename).path("share").path(userIdShare)
                 .queryParam(PASSWORD,password)
                 .request()
                 .post(Entity.entity(null,MediaType.APPLICATION_JSON));
 
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
-            System.out.println("Shared successfully");
-        else
+           return Result.ok();
+        else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-        private Void clt_unshareFile(String filename, String userId, String userIdShare, String password){
+        private Result<Void> clt_unshareFile(String filename, String userId, String userIdShare, String password){
             Response r = target.path(userId).path(filename).path("share").path(userIdShare)
                     .queryParam(PASSWORD,password)
                     .request()
                     .post(Entity.entity(null,MediaType.APPLICATION_JSON));
 
             if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
-                System.out.println("Shared successfully");
+               return Result.ok();
             else
                 System.out.println("Error, HTTP error status: " + r.getStatus());
-            return null;
+                return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+
         }
 
-    private byte[] clt_getFile(String filename, String userId, String accUserId, String password){
+    private Result<byte[]> clt_getFile(String filename, String userId, String accUserId, String password){
         Response r = target.path(userId).path(filename)
                 .queryParam(ACCUSER,accUserId)
                 .queryParam(PASSWORD,password).request()
                 .accept(MediaType.APPLICATION_OCTET_STREAM)
                 .get();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
-            return r.readEntity(byte[].class);
-        } else
+            return Result.ok(r.readEntity(byte[].class));
+        } else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    private List<FileInfo> clt_lsFile(String userId, String password) {
+    private Result<List<FileInfo>> clt_lsFile(String userId, String password) {
 
         Response r = target.path(userId)
                 .queryParam(PASSWORD,password).request()
@@ -171,12 +175,29 @@ public class RestDirClient extends RestClient implements Directory {
                 .get();
 
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
-            return r.readEntity(new GenericType<List<FileInfo>>() {
-            });
-        } else
+            return Result.ok(r.readEntity(new GenericType<List<FileInfo>>() {
+            }));
+        } else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
+    private Result.ErrorCode errorcheck(Response.Status status){
+        Result.ErrorCode res;
+        switch (status){
+            case FORBIDDEN:
+                res = Result.ErrorCode.FORBIDDEN;
+                break;
+            case NOT_FOUND:
+                res = Result.ErrorCode.NOT_FOUND;
+                break;
+            case CONFLICT:
+                res = Result.ErrorCode.CONFLICT;
+                break;
+            default:
+                res = Result.ErrorCode.BAD_REQUEST;
+        }return res;
+    }
 
 }

@@ -88,4 +88,21 @@ public class RestFilesClient extends RestClient implements Files {
 
     }
 
+    private Result.ErrorCode errorcheck(Response.Status status){
+        Result.ErrorCode res;
+        switch (status){
+            case FORBIDDEN:
+                res = Result.ErrorCode.FORBIDDEN;
+                break;
+            case NOT_FOUND:
+                res = Result.ErrorCode.NOT_FOUND;
+                break;
+            case CONFLICT:
+                res = Result.ErrorCode.CONFLICT;
+                break;
+            default:
+                res = Result.ErrorCode.BAD_REQUEST;
+        }return res;
+    }
+
 }

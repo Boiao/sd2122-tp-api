@@ -49,7 +49,7 @@ public interface Users {
 	/**
 	 * Deletes the user identified by userId. The users owned by the user should be eventually removed (asynchronous
 	 * deletion is ok).
-	 * @param nauserId the userId of the user
+	 * @param userId the userId of the user
 	 * @param password password of the user
 	 * @return 200 the deleted user object, if the name exists and pwd matches the
 	 *         existing password 

@@ -27,6 +27,7 @@ public class JavaDirectory implements Directory {
     private final Map<String, Map<String, FileInfo>> access = new ConcurrentHashMap<>();
     private final Map<String, String> filesIDs = new ConcurrentHashMap<>();
     private static Logger Log = Logger.getLogger(DirResources.class.getName());
+    private ClientFactory factory;
     private Users usersClient;
     private Files filesClient;
     private Discovery discv = new Discovery(null, "directory", null);
@@ -36,11 +37,14 @@ public class JavaDirectory implements Directory {
 
 
     public JavaDirectory() {
-        usersURI = getServiceURI("users");
-        filesURI = getServiceURI("files");
-        usersClient = ClientFactory.getUserClient(usersURI.toString());
-        filesClient = ClientFactory.getFilesClient(filesURI.toString());
+        factory = new ClientFactory();
+        usersURI = factory.getServiceURI("users");
+        filesURI = factory.getServiceURI("files");
+        usersClient = factory.getUserClient(usersURI.toString());
+        filesClient = factory.getFilesClient(filesURI.toString());
         fileid = 0;
+
+
     }
 
     @Override
@@ -75,11 +79,11 @@ public class JavaDirectory implements Directory {
 
             return Result.ok(file);
         } else if (status == Result.ErrorCode.NOT_FOUND)
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if (status == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
 
 
     }
@@ -96,11 +100,11 @@ public class JavaDirectory implements Directory {
             removeAccess(filename,file);
             return Result.ok();
         } else if (status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(status == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
 
     }
 
@@ -138,11 +142,11 @@ public class JavaDirectory implements Directory {
             giveAccess(userIdShare,filename, file);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
         } else if (ushstatus == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(status == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
     }
 
     @Override
@@ -161,11 +165,11 @@ public class JavaDirectory implements Directory {
                 access.get(userIdShare).remove(filename);
             throw new WebApplicationException(Response.Status.NO_CONTENT);
         } else if (ushstatus == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(status == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
 
     }
 
@@ -188,11 +192,11 @@ public class JavaDirectory implements Directory {
                     Response.temporaryRedirect(
                             URI.create(file.getFileURL())).build());
         } else if (status == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(accstatus == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
     }
 
 
@@ -206,13 +210,13 @@ public class JavaDirectory implements Directory {
                 res = new ArrayList<>(access.get(userId).values());
             return Result.ok(res);
         }else if( status == Result.ErrorCode.NOT_FOUND)
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else if( status == Result.ErrorCode.FORBIDDEN)
-            throw new WebApplicationException(Response.Status.FORBIDDEN);
+            return Result.error(Result.ErrorCode.FORBIDDEN);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
     }
-
+/*
     private URI getServiceURI(String serviceName) {
 
         URI uri = null;
@@ -226,6 +230,7 @@ public class JavaDirectory implements Directory {
         }
         return uri;
     }
+    */
     private void giveAccess(String userId,String filename, FileInfo file){
         if(access.containsKey(userId))
             access.get(userId).put(filename, file);
