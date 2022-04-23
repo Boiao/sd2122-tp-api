@@ -16,6 +16,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientFactory {
     static Discovery discv = new Discovery(null,null,null);
@@ -63,8 +65,8 @@ public class ClientFactory {
     public static URI getServiceURI(String serviceName) {
 
         URI uri = null;
-        int tries = 0;
-        while (tries < 10) {
+        //int tries = 0;
+        while (true) {
             if (discv.knownUrisOf(serviceName).length > 0) {
                 uri = discv.knownUrisOf(serviceName)[0];
                 break;
@@ -73,13 +75,14 @@ public class ClientFactory {
         return uri;
     }
 
-    public static List<URI> getFilesURI(String serviceName) {
-        List<URI> uri = new ArrayList<>();
-        int tries = 0;
-        while (tries <= 1000) {
-            //System.out.println(uri);
-            uri = Arrays.asList(discv.knownUrisOf("files"));
-            tries++;
+    public static Map<URI,Integer> getFilesURI(String serviceName) {
+        Map<URI,Integer> uri = new ConcurrentHashMap<>();
+        while (true) {
+            if(discv.knownUrisOf(serviceName).length > 0) {
+                for(int i = 0 ; i < discv.knownUrisOf(serviceName).length ; i++)
+                uri.put(discv.knownUrisOf(serviceName)[i],0);
+                break;
+            }
         }
         return uri;
     }
