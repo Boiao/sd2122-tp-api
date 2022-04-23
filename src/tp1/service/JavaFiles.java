@@ -24,7 +24,7 @@ public class JavaFiles implements tp1.api.service.util.Files {
             Files.write(Path.of(fileId), data);
             files.put(fileId, Path.of( fileId));
         } catch (Exception e) {
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
         }
 
         return Result.ok();
@@ -41,9 +41,9 @@ public class JavaFiles implements tp1.api.service.util.Files {
                 e.printStackTrace();
             }
         }else if (!files.containsKey(fileId))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
 
         return Result.ok();
     }
@@ -59,9 +59,9 @@ public class JavaFiles implements tp1.api.service.util.Files {
                 return null;
             }
         } else if (!files.containsKey(fileId))
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
+            return Result.error(Result.ErrorCode.NOT_FOUND);
         else
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.BAD_REQUEST);
 
 
     }

@@ -153,9 +153,11 @@ public class JavaUsers implements Users {
             return Result.error(Result.ErrorCode.FORBIDDEN);
         }
         users.remove(userId);
-        Directory dirClient = factory.getDirClient(factory.getServiceURI("directory").toString());
+        Directory dirClient = factory.getDirClient(getServiceURI("directory").toString());
         if(dirClient != null)
             dirClient.deleteUserFiles(userId, password);
+
+
 
         return Result.ok(user);
     }

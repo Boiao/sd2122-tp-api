@@ -1,5 +1,6 @@
 package tp1.server.SOAP.resources;
 
+import jakarta.jws.WebService;
 import tp1.api.User;
 import tp1.api.service.soap.SoapUsers;
 import tp1.api.service.soap.UsersException;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
+@WebService(serviceName=SoapUsers.NAME, targetNamespace=SoapUsers.NAMESPACE, endpointInterface=SoapUsers.INTERFACE)
 public class SoapUsersWebService implements SoapUsers{
 
     static Logger Log = Logger.getLogger(SoapUsersWebService.class.getName());

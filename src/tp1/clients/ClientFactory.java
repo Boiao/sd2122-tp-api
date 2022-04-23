@@ -11,11 +11,7 @@ import tp1.clients.SOAP.SoapDirClient;
 import tp1.clients.SOAP.SoapFilesClient;
 import tp1.clients.SOAP.SoapUsersClient;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,50 +35,40 @@ public class ClientFactory {
         if( serverURI.endsWith("rest"))
             return new RestDirClient( URI.create(serverURI) );
         else
-            return new SoapDirClient();
+            return new SoapDirClient( URI.create(serverURI));
     }
 
     public static Files getFilesClient(String serverURI){
         if( serverURI.endsWith("rest"))
             return new RestFilesClient( URI.create(serverURI) );
         else
-            return new SoapFilesClient();
+            return new SoapFilesClient( URI.create(serverURI));
     }
-/*
-    public static List<Files> getFilesClient() {
-        // use discovery to find a uri of the Users service;
-        List<URI> serverURI = getFilesURI("files");
-        List<Files> servers = new ArrayList<>();
-        for(URI uri : serverURI) {
-            if (uri.toString().endsWith("rest"))
-                servers.add(new RestFilesClient(uri));
-            else
-                servers.add(new SoapFilesClient());
-        }
-        return servers;
-    }
-*/
+
     public static URI getServiceURI(String serviceName) {
 
         URI uri = null;
-        //int tries = 0;
+        int tries = 0;
         while (true) {
             if (discv.knownUrisOf(serviceName).length > 0) {
                 uri = discv.knownUrisOf(serviceName)[0];
                 break;
             }
+            tries++;
         }
         return uri;
     }
 
     public static Map<URI,Integer> getFilesURI(String serviceName) {
         Map<URI,Integer> uri = new ConcurrentHashMap<>();
+        //int tries = 0;
         while (true) {
             if(discv.knownUrisOf(serviceName).length > 0) {
                 for(int i = 0 ; i < discv.knownUrisOf(serviceName).length ; i++)
                 uri.put(discv.knownUrisOf(serviceName)[i],0);
                 break;
             }
+
         }
         return uri;
     }

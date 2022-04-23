@@ -28,13 +28,14 @@ public class JavaDirectory implements Directory {
     private ClientFactory factory;
     private Users usersClient;
     private Files filesClient;
-    private Discovery discv = new Discovery(null, "directory", null);
+    private Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, "directory", null);
     private URI usersURI;
     private Map<URI,Integer> filesURI;
     private int fileid;
 
 
     public JavaDirectory() {
+        discv.listener();
         factory = new ClientFactory();
         usersURI = factory.getServiceURI("users");
         usersClient = factory.getUserClient(usersURI.toString());
@@ -55,6 +56,7 @@ public class JavaDirectory implements Directory {
             filesURI = factory.getFilesURI("files");
             String choosen = chooseServer();
             filesClient = factory.getFilesClient(choosen);
+            System.out.println(filesURI);
             if(oldID == null) {
                 file = new FileInfo(userId, filename, choosen + "/files/" + fileid, new HashSet<>());
                 filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
@@ -188,10 +190,23 @@ public class JavaDirectory implements Directory {
 
             if(!file.getSharedWith().contains(accUserId) && !accUserId.equals(userId))
                 throw new WebApplicationException(Response.Status.FORBIDDEN);
+            var dirURI = getServiceURI("directory").toString();
+            System.out.println("DIRURI " + dirURI);
+            if(dirURI.endsWith("rest")) {
+                throw new WebApplicationException(
+                        Response.temporaryRedirect(
+                                URI.create(file.getFileURL())).build());
+            } else{
+                System.out.println("entrou no get");
+                String fileSv = getFileServer(file);
+                System.out.println("file server: " + fileSv);
+                filesClient = factory.getFilesClient(fileSv);
+                System.out.println("entrou no get2");
+                String fileId = filesIDs.get(userId + "/" + filename);
+                System.out.println("entrou no get3 " + fileId);
+                return filesClient.getFile(fileId,"");
+            }
 
-            throw new WebApplicationException(
-                    Response.temporaryRedirect(
-                            URI.create(file.getFileURL())).build());
         } else if (status == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(accstatus == Result.ErrorCode.FORBIDDEN)
@@ -217,11 +232,10 @@ public class JavaDirectory implements Directory {
         else
             return Result.error(Result.ErrorCode.BAD_REQUEST);
     }
-/*
+
     private URI getServiceURI(String serviceName) {
 
         URI uri = null;
-        discv.listener();
         int tries = 0;
         while (tries < 10) {
             if (discv.knownUrisOf(serviceName).length > 0) {
@@ -231,7 +245,7 @@ public class JavaDirectory implements Directory {
         }
         return uri;
     }
-    */
+
     private void giveAccess(String userId,String filename, FileInfo file){
         if(access.containsKey(userId))
             access.get(userId).put(filename, file);

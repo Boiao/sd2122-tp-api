@@ -24,7 +24,7 @@ public class RestFilesClient extends RestClient implements Files {
     @Override
     public Result<Void> writeFile(String fileId, byte[] data, String token) {
        return super.reTry(() -> {
-           return Result.ok(clt_writeFile(fileId,data,token));
+           return clt_writeFile(fileId,data,token);
 
         });
     }
@@ -32,7 +32,7 @@ public class RestFilesClient extends RestClient implements Files {
     @Override
     public Result<Void> deleteFile(String fileId, String token) {
        return super.reTry(() -> {
-          return Result.ok(clt_deleteFile(fileId));
+          return clt_deleteFile(fileId);
 
         });
 
@@ -42,37 +42,37 @@ public class RestFilesClient extends RestClient implements Files {
     public Result<byte[]> getFile(String fileId, String token) {
 
         return super.reTry(()->{
-            return Result.ok(clt_getFile(fileId));
+            return clt_getFile(fileId);
         });
 
     }
 
-    public Void clt_writeFile(String fileId, byte[] data, String token){
+    public Result<Void> clt_writeFile(String fileId, byte[] data, String token){
         Response r = target.path(fileId).request()
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(data,MediaType.APPLICATION_OCTET_STREAM));
-        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
-
-        } else
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+            return Result.ok();
+        else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-
-
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    public Void clt_deleteFile(String fileId) {
+    public Result<Void> clt_deleteFile(String fileId) {
         Response r = target.path(fileId)
                 .queryParam(TOKEN,"")
                 .request()
                 .delete();
-        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
-
-        } else
+        if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity())
+            return Result.ok();
+        else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
     }
 
-    public byte[] clt_getFile(String fileId) {
+    public Result<byte[]> clt_getFile(String fileId) {
 
 
         Response r = target.path(fileId)
@@ -80,10 +80,11 @@ public class RestFilesClient extends RestClient implements Files {
                 .accept(MediaType.APPLICATION_OCTET_STREAM)
                 .get();
         if (r.getStatus() == Response.Status.OK.getStatusCode() && r.hasEntity()) {
-            return r.readEntity(byte[].class);
-        } else
+            return Result.ok(r.readEntity(byte[].class));
+        } else{
             System.out.println("Error, HTTP error status: " + r.getStatus());
-        return null;
+            return Result.error(errorcheck(Response.Status.fromStatusCode(r.getStatus())));
+        }
 
 
     }

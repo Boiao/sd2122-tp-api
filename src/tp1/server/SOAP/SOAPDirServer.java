@@ -1,6 +1,7 @@
 package tp1.server.SOAP;
 
 import jakarta.xml.ws.Endpoint;
+import tp1.Discovery;
 import tp1.server.SOAP.resources.SoapDirWebService;
 
 import java.net.InetAddress;
@@ -28,6 +29,8 @@ public class SOAPDirServer {
         String serverURI = String.format(SERVER_BASE_URI, ip, PORT);
 
         Endpoint.publish(serverURI.replace(ip, "0.0.0.0"), new SoapDirWebService());
+        Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, SERVICE_NAME, serverURI);
+        discv.start();
 
         Log.info(String.format("%s Soap Server ready @ %s\n", SERVICE_NAME, serverURI));
     }

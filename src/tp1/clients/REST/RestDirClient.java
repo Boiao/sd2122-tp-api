@@ -2,21 +2,16 @@ package tp1.clients.REST;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import javassist.bytecode.ByteArray;
 import tp1.api.FileInfo;
-import tp1.api.User;
 import tp1.api.service.rest.RestDirectory;
-import tp1.api.service.rest.RestUsers;
 import tp1.api.service.util.Directory;
 import tp1.api.service.util.Result;
 
-import javax.print.DocFlavor;
+
 import java.net.URI;
-import java.util.HashSet;
 import java.util.List;
 
 public class RestDirClient extends RestClient implements Directory {
