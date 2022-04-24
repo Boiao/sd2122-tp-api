@@ -18,7 +18,6 @@ public class SoapFilesClient extends SoapClient implements Files {
 
     public SoapFilesClient(URI serverURI) {
         super(serverURI);
-        System.out.println("entrouclient");
         QName qname = new QName(SoapFiles.NAMESPACE, SoapFiles.NAME);
         Service service = null;
         try {

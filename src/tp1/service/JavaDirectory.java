@@ -28,6 +28,7 @@ public class JavaDirectory implements Directory {
     private ClientFactory factory;
     private Users usersClient;
     private Files filesClient;
+    private Map<String,Files> clients = new ConcurrentHashMap<>();
     private Discovery discv = new Discovery(Discovery.DISCOVERY_ADDR, "directory", null);
     private URI usersURI;
     private Map<URI,Integer> filesURI;
@@ -54,18 +55,19 @@ public class JavaDirectory implements Directory {
             FileInfo file;
 
             filesURI = factory.getFilesURI("files");
+            for(URI uri : filesURI.keySet()){
+                clients.put(uri.toString(),factory.getFilesClient(uri.toString()));
+            }
             String choosen = chooseServer();
-            filesClient = factory.getFilesClient(choosen);
-            System.out.println(filesURI);
             if(oldID == null) {
                 file = new FileInfo(userId, filename, choosen + "/files/" + fileid, new HashSet<>());
                 filesIDs.put(userId + "/" + filename, String.valueOf(fileid));
-                filesClient.writeFile(String.valueOf(fileid), data, "");
+                clients.get(choosen).writeFile(String.valueOf(fileid), data, "");
                 fileid++;
             } else {
                 Set<String> sharedwith = directories.get(userId).get(filename).getSharedWith();
                 file = new FileInfo(userId, filename, choosen + "/files/" + oldID, sharedwith);
-                filesClient.writeFile(oldID, data, "");
+                clients.get(choosen).writeFile(oldID, data, "");
             }
             giveAccess(userId,filename,file);
             if(directories.containsKey(userId))
@@ -95,8 +97,7 @@ public class JavaDirectory implements Directory {
         var status = u.error();
         if (status == Result.ErrorCode.OK && directories.containsKey(userId) && directories.get(userId).containsKey(filename)) {
             FileInfo file = directories.get(userId).get(filename);
-            filesClient = factory.getFilesClient(getFileServer(file));
-            filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
+            clients.get(getFileServer(file)).deleteFile(filesIDs.get(userId + "/" + filename),"");
             directories.get(userId).remove(filename);
             filesIDs.remove(userId + "/" + filename);
             removeAccess(filename,file);
@@ -116,8 +117,7 @@ public class JavaDirectory implements Directory {
         for(FileInfo f : userfiles){
             Set<String> users = access.keySet();
             String filename = f.getFilename();
-            filesClient = factory.getFilesClient(getFileServer(f));
-            filesClient.deleteFile(filesIDs.get(userId + "/" + filename),"");
+            clients.get(getFileServer(f)).deleteFile(filesIDs.get(userId + "/" + filename),"");
             for(String id : users)
                 access.get(id).remove(filename, f);
 
@@ -137,13 +137,12 @@ public class JavaDirectory implements Directory {
         var status = u.error();
         var ushstatus = ush.error();
         FileInfo file = directories.get(userId).get(filename);
-        System.out.println("STATUS: " + status.toString() + " " + ushstatus.toString());
         if ((ushstatus != Result.ErrorCode.NOT_FOUND && status == Result.ErrorCode.OK && directories.containsKey(userId) && directories.get(userId).containsKey(filename))) {
             Set<String> sharedWith = file.getSharedWith();
             sharedWith.add(userIdShare);
             file.setSharedWith(sharedWith);
             giveAccess(userIdShare,filename, file);
-            throw new WebApplicationException(Response.Status.NO_CONTENT);
+            return Result.ok();
         } else if (ushstatus == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(status == Result.ErrorCode.FORBIDDEN)
@@ -166,7 +165,7 @@ public class JavaDirectory implements Directory {
             file.setSharedWith(sharedWith);
             if(!userId.equals(userIdShare))
                 access.get(userIdShare).remove(filename);
-            throw new WebApplicationException(Response.Status.NO_CONTENT);
+            return Result.ok();
         } else if (ushstatus == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))
             return Result.error(Result.ErrorCode.NOT_FOUND);
         else if(status == Result.ErrorCode.FORBIDDEN)
@@ -191,20 +190,17 @@ public class JavaDirectory implements Directory {
             if(!file.getSharedWith().contains(accUserId) && !accUserId.equals(userId))
                 throw new WebApplicationException(Response.Status.FORBIDDEN);
             var dirURI = getServiceURI("directory").toString();
-            System.out.println("DIRURI " + dirURI);
             if(dirURI.endsWith("rest")) {
                 throw new WebApplicationException(
                         Response.temporaryRedirect(
                                 URI.create(file.getFileURL())).build());
             } else{
-                System.out.println("entrou no get");
-                String fileSv = getFileServer(file);
-                System.out.println("file server: " + fileSv);
-                filesClient = factory.getFilesClient(fileSv);
-                System.out.println("entrou no get2");
                 String fileId = filesIDs.get(userId + "/" + filename);
-                System.out.println("entrou no get3 " + fileId);
-                return filesClient.getFile(fileId,"");
+                var res= clients.get(getFileServer(file)).getFile(fileId,"");
+                if (res.isOK()){
+                    return Result.ok(res.value());
+                } else
+                    return Result.error(res.error());
             }
 
         } else if (status == Result.ErrorCode.NOT_FOUND || status == Result.ErrorCode.NOT_FOUND || !directories.containsKey(userId) || !directories.get(userId).containsKey(filename))

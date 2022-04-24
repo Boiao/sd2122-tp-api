@@ -1,7 +1,5 @@
 package tp1.service;
 
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
 import tp1.api.service.util.Result;
 
 import java.io.IOException;
@@ -32,7 +30,9 @@ public class JavaFiles implements tp1.api.service.util.Files {
 
     @Override
     public Result<Void> deleteFile(String fileId, String token) {
+
         if (files.containsKey(fileId)) {
+
             Path path = files.get(fileId);
             files.remove(fileId);
             try {
@@ -61,7 +61,7 @@ public class JavaFiles implements tp1.api.service.util.Files {
         } else if (!files.containsKey(fileId))
             return Result.error(Result.ErrorCode.NOT_FOUND);
         else
-            return Result.error(Result.ErrorCode.BAD_REQUEST);
+            return Result.error(Result.ErrorCode.CONFLICT);
 
 
     }

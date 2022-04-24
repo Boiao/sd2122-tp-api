@@ -26,7 +26,6 @@ public class SoapUsersClient extends SoapClient implements Users {
     private SoapUsers users;
     public SoapUsersClient(URI serverURI)  {
         super(serverURI);
-        System.out.println("entrouclient");
         QName qname = new QName(SoapUsers.NAMESPACE, SoapUsers.NAME);
         Service service = null;
         try {

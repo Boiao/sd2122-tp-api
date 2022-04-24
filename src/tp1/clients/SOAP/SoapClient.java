@@ -6,7 +6,6 @@ import jakarta.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import tp1.api.service.util.Result;
-import tp1.clients.REST.RestClient;
 
 import java.net.URI;
 import java.util.function.Supplier;
@@ -19,7 +18,7 @@ public class SoapClient {
     protected static final int READ_TIMEOUT = 10000;
     protected static final int CONNECT_TIMEOUT = 10000;
 
-    protected static final int RETRY_SLEEP = 3000;
+    protected static final int RETRY_SLEEP = 1000;
     protected static final int MAX_RETRIES = 3;
 
     final URI serverURI;

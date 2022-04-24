@@ -21,7 +21,6 @@ public class SoapDirClient extends SoapClient implements Directory {
     private SoapDirectory dir;
     public SoapDirClient(URI serverURI) {
         super(serverURI);
-        System.out.println("entrouclient");
         QName qname = new QName(SoapDirectory.NAMESPACE, SoapDirectory.NAME);
         Service service = null;
         try {
